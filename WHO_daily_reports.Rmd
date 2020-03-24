@@ -78,5 +78,22 @@ WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=country_region,x=PercentDeat
         scale_x_continuous(labels=scales::percent)
                                            
 ```
+##### More plots 
+
+```{r}
+WHO_total_daily <- WHO %>% group_by(last_update) %>% summarise(
+                                      TotalCases = sum(confirmed),
+                                      TotalDeaths = sum(deaths),
+                                      PercentDeaths = TotalDeaths/TotalCases,
+                                      Count = n())
+```
+```{r}
+WHO_total_daily %>% ggplot() + geom_line(aes(x=last_update,y=TotalCases))
+
+WHO_total_daily %>% ggplot() + geom_line(aes(x=last_update,y=TotalDeaths))
+
+WHO_total_daily %>% ggplot() + geom_line(aes(x=last_update,y=PercentDeaths))
+```
+
 
 

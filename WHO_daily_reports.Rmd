@@ -13,25 +13,44 @@ library(lubridate)
 library(plotly)
 ```
 ```{r,echo=FALSE}
-
 rm(list=ls())
-WHO <-dir("data",full.names=T) %>% map_df(fread)
-WHO <- janitor::clean_names(WHO)
-WHO$last_update <- as.Date(WHO$last_update)
-WHO$country_region <- ifelse(WHO$country_region =="Mainland China","China",WHO$country_region)
 
+# WHO <- coronavirus
+WHO <-dir("DATA",full.names=T) %>% map_df(fread)
+WHO$Date <- substr(WHO$Update,1,10)
+WHO$Date <- ymd(WHO$Date)
+# WHO$Update <- as.Date(WHO$Update, format = "%m/%d/%Y")
+#
+WHO_longitude <-dir("LongLat",full.names=T) %>% map_df(fread)
+WHO_longitude$Date <- substr(WHO_longitude$Update,1,10)
+WHO_longitude$Date <- ymd(WHO_longitude$Date)
+#
+WHO_long <-dir("LongData",full.names=T) %>% map_df(fread)
+WHO_long$Date <- substr(WHO_long$Update,1,10)
+WHO_long$Date <- ymd(WHO_long$Date)
+
+#
+WHO$country <- ifelse(WHO$Country =="Mainland China","China",WHO$Country)
+```
+```{r}
+# Combine Data sets
+WHO <- WHO %>% select(Date,State,Country,Update,Confirmed,Deaths,Recovered)
+A <- WHO_longitude %>% select(Date,State,Country,Update,Confirmed,Deaths,Recovered)
+B <- WHO_long %>% select(Date,State,Country,Update,Confirmed,Deaths,Recovered)
+WHO_combined <- rbind(WHO,A,B)
+WHO_combined$Update <- as.Date(WHO_combined$Update, format = "%m/%d/%Y")
 ```
 # Plot Total Cases by Country
 
-```{r}
-WHO_total_country <- WHO %>% group_by(country_region) %>% summarise(
-                                      TotalCases = sum(confirmed),
-                                      TotalDeaths = sum(deaths),
+```{r,echo=FALSE}
+WHO_total_country <- WHO_combined %>% group_by(Country) %>% summarise(
+                                      TotalCases = sum(Confirmed),
+                                      TotalDeaths = sum(Deaths),
                                       PercentDeaths = TotalDeaths/TotalCases,
                                       Count = n())
 ```
 
-```{r}   
+```{r,echo=FALSE}   
 WHO_total_country_50 <- WHO_total_country %>% filter(TotalDeaths >50)
 WHO_total_country_100 <- WHO_total_country %>% filter(TotalDeaths >100)
 WHO_total_country_500 <- WHO_total_country %>% filter(TotalDeaths >500)
@@ -39,40 +58,42 @@ WHO_total_country_1000 <- WHO_total_country %>% filter(TotalDeaths >1000)
 ```
 #### Total Confimed  Cases by Country
 
-```{r}
- WHO_total_country_50 %>% ggplot() +geom_col(aes(y=country_region,x=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 50")
+```{r,echo=FALSE}
+ WHO_total_country_50 %>%  
+  ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 50") 
+   
 # 
-WHO_total_country_100 %>% ggplot() +geom_col(aes(y=country_region,x=TotalCases)) +
+WHO_total_country_100 %>% ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
         labs(title ="Countries with Confirmed Cases > 100")
 #
-WHO_total_country_500 %>% ggplot() +geom_col(aes(y=country_region,x=TotalCases)) +
+WHO_total_country_500 %>% ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
         labs(title ="Countries with Confirmed Cases > 500")
 #
-WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=country_region,x=TotalCases)) +
+WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
         labs(title ="Countries with Confirmed Cases > 1000")
                                            
 ```
 
 ## Death Rate Percentage by Country 
 
-```{r}
+```{r, echo=FALSE}
 #### Total Confimed  Cases by Country
- WHO_total_country_50 %>% ggplot() +geom_col(aes(y=country_region,x=PercentDeaths)) +
+ WHO_total_country_50 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
         labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 50",x="Percentage of Confirmed Case That End in Death") +
         scale_x_continuous(labels=scales::percent) 
 
 # 
-WHO_total_country_100 %>% ggplot() +geom_col(aes(y=country_region,x=PercentDeaths)) +
+WHO_total_country_100 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
         labs(title ="Death Rate Percentage:Countries with Confirmed Cases > 100", 
         x="Percentage of Confirmed Case That End in Death") + 
         scale_x_continuous(labels=scales::percent)
 #
-WHO_total_country_500 %>% ggplot() +geom_col(aes(y=country_region,x=PercentDeaths)) +
+WHO_total_country_500 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
         labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 500",        x="Percentage of Confirmed Case That End in Death") +              scale_x_continuous(labels=scales::percent)
         
 #
-WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=country_region,x=PercentDeaths)) +
+WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
         labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 1000",
         x="Percentage of Confirmed Case That End in Death") +
         scale_x_continuous(labels=scales::percent)
@@ -80,19 +101,20 @@ WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=country_region,x=PercentDeat
 ```
 ##### More plots 
 
-```{r}
-WHO_total_daily <- WHO %>% group_by(last_update) %>% summarise(
-                                      TotalCases = sum(confirmed),
-                                      TotalDeaths = sum(deaths),
+```{r,echo=FALSE}
+WHO_total_daily <- WHO %>% group_by(Date) %>% summarise(
+                                      TotalCases = sum(Confirmed),
+                                      TotalDeaths = sum(Deaths),
                                       PercentDeaths = TotalDeaths/TotalCases,
                                       Count = n())
 ```
-```{r}
-WHO_total_daily %>% ggplot() + geom_line(aes(x=last_update,y=TotalCases))
+```{r, echo=FALSE}
+WHO_total_daily %>% ggplot() + geom_line(aes(x=Date,y=TotalCases))
 
-WHO_total_daily %>% ggplot() + geom_line(aes(x=last_update,y=TotalDeaths))
+WHO_total_daily %>% ggplot() + geom_line(aes(x=Date,y=TotalDeaths))
 
-WHO_total_daily %>% ggplot() + geom_line(aes(x=last_update,y=PercentDeaths))
+WHO_total_daily %>% ggplot() + geom_line(aes(x=Date,y=PercentDeaths)) +
+   scale_y_continuous(labels=scales::percent)
 ```
 
 

@@ -19,10 +19,17 @@ rm(list=ls())
 
 WHO <-dir("DATA",full.names=T) %>% map_df(fread)
 colnames(WHO) <- c("State","Country","Update","Confirmed","Deaths","Recovered")
+
 WHO$Year <- substr(WHO$Update,1,4)
 WHO$Month <- substr(WHO$Update,6,7)
 WHO$Day <- substr(WHO$Update,9,10)
 WHO$Ymd <- as.Date(paste(WHO$Year, WHO$Month,WHO$Day, sep = "-"))
+```
+```{r, echo=FALSE}
+WHO$Country <-ifelse(WHO$Country=="Mainland China","China",WHO$Country)
+WHO$Country <-ifelse(WHO$Country=="Bolivia (Plurinational State of)","Bolivia",WHO$Country)
+WHO$Country <-ifelse(WHO$Country=="Iran (Islamic Republic of)","Iran",WHO$Country)
+# WHO$Country <-ifelse(WHO$Country=="Mainland China","China",WHO$Country)
 ```
 
 ```{r}
@@ -40,10 +47,7 @@ WHO_long$Month <- substr(WHO_long$Update,6,7)
 WHO_long$Day <- substr(WHO_long$Update,9,10)
 WHO_long$Ymd <- as.Date(paste(WHO_long$Year, WHO_long$Month,WHO_long$Day, sep = "-"))
 ```
-#
-```{r}
 
-```
 ```{r}
 # Combine Data sets
 WHO_dat <- WHO %>% select(Ymd,State,Country,Update,Confirmed,Deaths,Recovered)
@@ -51,11 +55,7 @@ A <- WHO_longitude %>% select(Ymd,State,Country,Update,Confirmed,Deaths,Recovere
 B <- WHO_long %>% select(Ymd,State,Country,Update,Confirmed,Deaths,Recovered)
 WHO_combined <- rbind(WHO_dat,A,B)
 ```
-```{r}
-WHO_us <- WHO %>% filter(Country=="US")
-WHO_world <- WHO %>% filter(Country !="US")
 
-```
 # Plot Total Cases by Country
 
 ```{r,echo=FALSE}
@@ -65,39 +65,63 @@ WHO_total_country <- WHO_combined %>% group_by(Country) %>%                     
                        PercentDeaths =     TotalDeaths/TotalCases,
                                       Count = n())
 ```
+```{r}
 
+WHO_us <- WHO_total_country %>% filter(Country=="US")
+WHO_world <- WHO_total_country %>% filter(Country !="US")
+
+```
 ```{r,echo=FALSE}   
-WHO_total_country_50 <- WHO_total_country %>% filter(TotalDeaths >50)
 WHO_total_country_100 <- WHO_total_country %>% filter(TotalDeaths >100)
 WHO_total_country_500 <- WHO_total_country %>% filter(TotalDeaths >500)
 WHO_total_country_1000 <- WHO_total_country %>% filter(TotalDeaths >1000)
+WHO_total_country_5000 <- WHO_total_country %>% filter(TotalDeaths >5000)
+WHO_total_country_10000 <- WHO_total_country %>% filter(TotalDeaths >10000)
 ```
 #### Total Confimed  Cases by Country
 
 ```{r,echo=FALSE}
- WHO_total_country_50  %>%
+ WHO_total_country_100  %>%
   ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 50") +
-  coord_flip()
+        labs(title ="Countries with Confirmed Cases > 100") +
+  coord_flip() + scale_y_continuous(labels = scales::comma) 
+```
+
+```{r,echo=FALSE}
+ WHO_total_country_500  %>%
+  ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 500") +
+  coord_flip() + scale_y_continuous(labels = scales::comma) 
 ```
 ```{r}
 # 
-WHO_total_country_100 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 100") +
-  coord_flip()
+WHO_total_country_1000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases >1000") +
+  coord_flip() + scale_y_continuous(labels = scales::comma) 
 ```
 ```{r}
 #
-WHO_total_country_500 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 500") +
-  coord_flip()
+WHO_total_country_5000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 5000") +
+  coord_flip() + scale_y_continuous(labels = scales::comma) 
   
 ```
 ```{r}
 #
-WHO_total_country_1000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 100") +
-  coord_flip()
+WHO_total_country_10000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 10000") +
+  coord_flip() + scale_y_continuous(labels = scales::comma) 
+  
+```
+
+
+
+
+```{r}
+#
+WHO_total_country_10000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 10000") +
+  coord_flip() + scale_y_continuous(labels = scales::comma) 
                                            
 ```
 
@@ -105,22 +129,22 @@ WHO_total_country_1000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases)
 
 ```{r, echo=FALSE}
 #### Total Confimed  Cases by Country
- WHO_total_country_50 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
-        labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 50",x="Percentage of Confirmed Case That End in Death") +
+ WHO_total_country_500 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
+        labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 500",x="Percentage of Confirmed Case That End in Death") +
         scale_x_continuous(labels=scales::percent) 
 
 # 
-WHO_total_country_100 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
-        labs(title ="Death Rate Percentage:Countries with Confirmed Cases > 100", 
+WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
+        labs(title ="Death Rate Percentage:Countries with Confirmed Cases > 1000", 
         x="Percentage of Confirmed Case That End in Death") + 
         scale_x_continuous(labels=scales::percent)
 #
-WHO_total_country_500 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
-        labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 500",        x="Percentage of Confirmed Case That End in Death") +              scale_x_continuous(labels=scales::percent)
+WHO_total_country_5000 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
+        labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 5000",        x="Percentage of Confirmed Case That End in Death") +              scale_x_continuous(labels=scales::percent)
         
 #
-WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
-        labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 1000",
+WHO_total_country_10000 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
+        labs(title ="Death Rate Percentage: Countries with Confirmed Cases > 10000",
         x="Percentage of Confirmed Case That End in Death") +
         scale_x_continuous(labels=scales::percent)
                                            

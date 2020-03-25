@@ -5,7 +5,7 @@ date: "3/23/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE,echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(data.table)
@@ -15,7 +15,7 @@ library(plotly)
 ```{r,echo=FALSE}
 rm(list=ls())
 ```
-```{r}
+```{r,echo=FALSE}
 
 WHO <-dir("DATA",full.names=T) %>% map_df(fread)
 colnames(WHO) <- c("State","Country","Update","Confirmed","Deaths","Recovered")
@@ -32,7 +32,7 @@ WHO$Country <-ifelse(WHO$Country=="Iran (Islamic Republic of)","Iran",WHO$Countr
 # WHO$Country <-ifelse(WHO$Country=="Mainland China","China",WHO$Country)
 ```
 
-```{r}
+```{r,echo=FASE}
 #
 WHO_longitude <-dir("LongLat",full.names=T) %>% map_df(fread)
 WHO_longitude$Year <- substr(WHO_longitude$Update,1,4)
@@ -40,7 +40,7 @@ WHO_longitude$Month <- substr(WHO_longitude$Update,6,7)
 WHO_longitude$Day <- substr(WHO_longitude$Update,9,10)
 WHO_longitude$Ymd <- as.Date(paste(WHO_longitude$Year, WHO_longitude$Month,WHO_longitude$Day, sep = "-"))
 ```
-```{r}
+```{r,echo=FALSE}
 WHO_long <-dir("LongData",full.names=T) %>% map_df(fread)
 WHO_long$Year <- substr(WHO_long$Update,1,4)
 WHO_long$Month <- substr(WHO_long$Update,6,7)
@@ -48,7 +48,7 @@ WHO_long$Day <- substr(WHO_long$Update,9,10)
 WHO_long$Ymd <- as.Date(paste(WHO_long$Year, WHO_long$Month,WHO_long$Day, sep = "-"))
 ```
 
-```{r}
+```{r, echo=FALSE}
 # Combine Data sets
 WHO_dat <- WHO %>% select(Ymd,State,Country,Update,Confirmed,Deaths,Recovered)
 A <- WHO_longitude %>% select(Ymd,State,Country,Update,Confirmed,Deaths,Recovered)
@@ -59,13 +59,13 @@ WHO_combined <- rbind(WHO_dat,A,B)
 # Plot Total Cases by Country
 
 ```{r,echo=FALSE}
-WHO_total_country <- WHO_combined %>% group_by(Country) %>%                                 summarise(
+WHO_total_country <- WHO_combined %>% group_by(Country,Ymd) %>%                                 summarise(
                        TotalCases = sum(Confirmed),
                        TotalDeaths = sum(Deaths),
                        PercentDeaths =     TotalDeaths/TotalCases,
                                       Count = n())
 ```
-```{r}
+```{r, echo=FALSE}
 
 WHO_us <- WHO_total_country %>% filter(Country=="US")
 WHO_world <- WHO_total_country %>% filter(Country !="US")
@@ -93,20 +93,20 @@ WHO_total_country_10000 <- WHO_total_country %>% filter(TotalDeaths >10000)
         labs(title ="Countries with Confirmed Cases > 500") +
   coord_flip() + scale_y_continuous(labels = scales::comma) 
 ```
-```{r}
+```{r, echo=FALSE}
 # 
 WHO_total_country_1000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
         labs(title ="Countries with Confirmed Cases >1000") +
   coord_flip() + scale_y_continuous(labels = scales::comma) 
 ```
-```{r}
+```{r,echo=FALSE}
 #
 WHO_total_country_5000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
         labs(title ="Countries with Confirmed Cases > 5000") +
   coord_flip() + scale_y_continuous(labels = scales::comma) 
   
 ```
-```{r}
+```{r,echo=FALSE}
 #
 WHO_total_country_10000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
         labs(title ="Countries with Confirmed Cases > 10000") +
@@ -114,10 +114,7 @@ WHO_total_country_10000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases
   
 ```
 
-
-
-
-```{r}
+```{r, echo=FALSE}
 #
 WHO_total_country_10000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
         labs(title ="Countries with Confirmed Cases > 10000") +
@@ -149,22 +146,40 @@ WHO_total_country_10000 %>% ggplot() +geom_col(aes(y=Country,x=PercentDeaths)) +
         scale_x_continuous(labels=scales::percent)
                                            
 ```
-##### More plots 
+
+#### US Vs World: Total Cases,Total Deaths, Death Rate
 
 ```{r,echo=FALSE}
-WHO_total_daily <- WHO %>% group_by(Ymd) %>% summarise(
-                                      TotalCases = sum(Confirmed),
-                                      TotalDeaths = sum(Deaths),
-                                      PercentDeaths = TotalDeaths/TotalCases,
+World_total_daily <- WHO_world %>% group_by(Ymd) %>% summarise(
+                                      TotalCases = sum(TotalCases),
+                                      TotalDeaths = sum(TotalDeaths),
+                                      DeathRate = TotalDeaths/TotalCases,
                                       Count = n())
 ```
+```{r}
+US_total_daily <- WHO_us %>% group_by(Ymd) %>% summarise(
+                                      TotalCases = sum(TotalCases),
+                                      TotalDeaths = sum(TotalDeaths),
+                                      DeathRate = TotalDeaths/TotalCases,
+                                      Count = n())
+```
+
 ```{r, echo=FALSE}
-WHO_total_daily %>% ggplot() + geom_line(aes(x=Ymd,y=TotalCases))
+ggplot() + geom_line(data=US_total_daily,aes(x=Ymd,y=TotalCases,col="US")) +
+  geom_line(data=World_total_daily,aes(x=Ymd,y=TotalCases,col="World")) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title="US vs World: Total Confirmed Cases By Date")
 
-WHO_total_daily %>% ggplot() + geom_line(aes(x=Ymd,y=TotalDeaths))
+ggplot() + geom_line(data=US_total_daily,aes(x=Ymd,y=TotalDeaths,col="US")) +
+  geom_line(data=World_total_daily,aes(x=Ymd,y=TotalDeaths,col="World")) +
+  scale_y_continuous(labels = scales::comma) + 
+  labs(title="US vs World: Total Daeaths By Date")
 
-WHO_total_daily %>% ggplot() + geom_line(aes(x=Ymd,y=PercentDeaths)) +
-   scale_y_continuous(labels=scales::percent)
+
+ggplot() + geom_line(data=US_total_daily,aes(x=Ymd,y=DeathRate,col="US")) +
+  geom_line(data=World_total_daily,aes(x=Ymd,y=DeathRate,col="World")) +
+  labs(title="US vs World: Death Rate as  Percentage By Date") +
+  scale_y_continuous(labels=scales::percent)
 ```
 
 

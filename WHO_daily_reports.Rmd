@@ -59,10 +59,10 @@ WHO_world <- WHO %>% filter(Country !="US")
 # Plot Total Cases by Country
 
 ```{r,echo=FALSE}
-WHO_total_country <- WHO_combined %>% group_by(Country) %>% summarise(
-                                      TotalCases = sum(Confirmed),
-                                      TotalDeaths = sum(Deaths),
-                                      PercentDeaths = TotalDeaths/TotalCases,
+WHO_total_country <- WHO_combined %>% group_by(Country) %>%                                 summarise(
+                       TotalCases = sum(Confirmed),
+                       TotalDeaths = sum(Deaths),
+                       PercentDeaths =     TotalDeaths/TotalCases,
                                       Count = n())
 ```
 
@@ -75,19 +75,29 @@ WHO_total_country_1000 <- WHO_total_country %>% filter(TotalDeaths >1000)
 #### Total Confimed  Cases by Country
 
 ```{r,echo=FALSE}
- WHO_total_country_50 %>%  
-  ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 50") 
-   
+ WHO_total_country_50  %>%
+  ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 50") +
+  coord_flip()
+```
+```{r}
 # 
-WHO_total_country_100 %>% ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 100")
+WHO_total_country_100 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 100") +
+  coord_flip()
+```
+```{r}
 #
-WHO_total_country_500 %>% ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 500")
+WHO_total_country_500 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 500") +
+  coord_flip()
+  
+```
+```{r}
 #
-WHO_total_country_1000 %>% ggplot() +geom_col(aes(y=Country,x=TotalCases)) +
-        labs(title ="Countries with Confirmed Cases > 1000")
+WHO_total_country_1000 %>% ggplot() + geom_col(aes(x=reorder(Country,TotalCases),y=TotalCases)) +
+        labs(title ="Countries with Confirmed Cases > 100") +
+  coord_flip()
                                            
 ```
 

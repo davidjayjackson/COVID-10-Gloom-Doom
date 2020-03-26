@@ -1,7 +1,7 @@
 ---
-title: 'European CDC: Import Daily Reports'
+title: 'European CDC: China (novel-COVID-19) Flu'
 author: "David J Jackson"
-date: "3/23/2020"
+date: "2020-03-25 22:15 EST/EDT"
 output: html_document
 ---
 
@@ -143,7 +143,8 @@ ggplot() + geom_line(data=US_total_daily,aes(x=Reported,y=TotalDeaths,col="US"))
 ggplot() + geom_line(data=US_total_daily,aes(x=Reported,y=DeathRate,col="US")) +
   geom_line(data=world_total_daily,aes(x=Reported,y=DeathRate,col="World")) +
   labs(title="US vs World: Death Rate as  Percentage By Date") +
-  scale_y_continuous(labels = scales::percent)
+  scale_y_continuous(labels=scales::percent, limits = c(0.0,0.4))
+  
 ```
 ```{r}
 library(pracma)
@@ -156,3 +157,4 @@ world_total_daily$E1 <- movavg(world_total_daily$TotalDeaths, 20,"e")
 world_total_daily %>% ggplot() +geom_line(aes(x=Reported,y=TotalDeaths,col="Total Deaths")) +
   geom_line(aes(x=Reported,y=E1,col="Exponential Mov. Avg.")) + labs(title="Total Deaths vs Moving Average",subtitle ="( 20 Day Exponential Moving Average)" )
 ```
+                 

@@ -20,7 +20,6 @@ rm(list=ls())
 db <- dbConnect(SQLite(), dbname="../db/CORVID.sqlite3")
 WHO <- dbGetQuery(db, "SELECT Countries,GeoID,Reported,Cases,Deaths,Population FROM ecdc;")
 WHO$Reported <- as.Date(WHO$Reported)
-WHO %>% DT::datatable()
 GEOID <- WHO %>% group_by(Countries,GeoId,Population) %>% 
         summarise(Count=n())
 dbWriteTable(db, "geoid", GEOID,overwrite=TRUE)
@@ -42,7 +41,8 @@ WHO_Countries <- WHO %>% group_by(Countries,Reported) %>%                       
                        TotalCases = sum(Cases),
                        TotalDeaths = sum(Deaths),
                        PercentDeaths =     TotalDeaths/TotalCases,
-                                      Count = n())
+                                      Count = n(),
+                                      TotalCases >0)
 ```
 
 ```{r,echo=FALSE}   
@@ -123,6 +123,7 @@ US_total_daily <- WHO_us %>% group_by(Reported) %>% summarise(
                                       TotalCases = sum(TotalCases),
                                       TotalDeaths = sum(TotalDeaths),
                                       DeathRate = TotalDeaths/TotalCases,Count = n())
+
 ```
 
 ```{r, echo=FALSE}
@@ -142,5 +143,16 @@ ggplot() + geom_line(data=US_total_daily,aes(x=Reported,y=TotalDeaths,col="US"))
 ggplot() + geom_line(data=US_total_daily,aes(x=Reported,y=DeathRate,col="US")) +
   geom_line(data=world_total_daily,aes(x=Reported,y=DeathRate,col="World")) +
   labs(title="US vs World: Death Rate as  Percentage By Date") +
-  scale_y_continuous(labels=scales::percent)
+  scale_y_continuous(labels = scales::percent)
+```
+```{r}
+library(pracma)
+world_total_daily$E <- movavg(world_total_daily$TotalCases, 20,"e")
+world_total_daily %>% ggplot() +geom_line(aes(x=Reported,y=TotalCases,col="Cases")) +
+  geom_line(aes(x=Reported,y=E,col="Exponential Mov. Avg")) + labs(title="Total Cases vs Moving Average",subtitle = "( 20 Day Exponential Moving Average)")
+```
+```{r}
+world_total_daily$E1 <- movavg(world_total_daily$TotalDeaths, 20,"e")
+world_total_daily %>% ggplot() +geom_line(aes(x=Reported,y=TotalDeaths,col="Total Deaths")) +
+  geom_line(aes(x=Reported,y=E1,col="Exponential Mov. Avg.")) + labs(title="Total Deaths vs Moving Average",subtitle ="( 20 Day Exponential Moving Average)" )
 ```

@@ -32,7 +32,7 @@ WHO$Country <-ifelse(WHO$Country=="Iran (Islamic Republic of)","Iran",WHO$Countr
 # WHO$Country <-ifelse(WHO$Country=="Mainland China","China",WHO$Country)
 ```
 
-```{r,echo=FASE}
+```{r,echo=FALSE}
 #
 WHO_longitude <-dir("LongLat",full.names=T) %>% map_df(fread)
 WHO_longitude$Year <- substr(WHO_longitude$Update,1,4)
@@ -183,4 +183,7 @@ ggplot() + geom_line(data=US_total_daily,aes(x=Ymd,y=DeathRate,col="US")) +
 ```
 
 
+```{r}
+country_total <- WHO_combined %>% group_by(Country,Ymd) %>% summarise(Count = n())
+```
 
